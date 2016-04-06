@@ -191,6 +191,11 @@ namespace ts {
 
     const typeReferenceExtensions = [".d.ts"];
 
+    /**
+     * @param {string | undefined} containingFile - file that contains type reference directive, can be undefined if containing file is unknown.
+     * This is possible in case if resolution is performed for directives specified via 'types' parameter. In this case initial path for secondary lookups
+     * is assumed to be the same as root directory of the project.
+     */
     export function resolveTypeReferenceDirective(typeReferenceDirectiveName: string, containingFile: string, options: CompilerOptions, host: ModuleResolutionHost): ResolvedTypeReferenceDirectiveWithFailedLookupLocations {
         const traceEnabled = isTraceEnabled(options, host);
         const moduleResolutionState: ModuleResolutionState = {
@@ -204,11 +209,21 @@ namespace ts {
         const rootDir = options.typesRoot || (options.configFilePath ? getDirectoryPath(options.configFilePath) : undefined);
 
         if (traceEnabled) {
-            if (rootDir !== undefined) {
-                trace(host, Diagnostics.Resolving_type_reference_directive_0_from_1_root_dir_2, typeReferenceDirectiveName, containingFile, rootDir);
+            if (containingFile === undefined) {
+                if (rootDir === undefined) {
+                    trace(host, Diagnostics.Resolving_type_reference_directive_0_containing_file_not_set_root_directory_not_set, typeReferenceDirectiveName);
+                }
+                else {
+                    trace(host, Diagnostics.Resolving_type_reference_directive_0_containing_file_not_set_root_directory_1, typeReferenceDirectiveName, rootDir);
+                }
             }
             else {
-                trace(host, Diagnostics.Resolving_type_reference_directive_0_from_1_root_dir_not_set, typeReferenceDirectiveName, containingFile);
+                if (rootDir === undefined) {
+                    trace(host, Diagnostics.Resolving_type_reference_directive_0_containing_file_1_root_directory_not_set, typeReferenceDirectiveName, containingFile);
+                }
+                else {
+                    trace(host, Diagnostics.Resolving_type_reference_directive_0_containing_file_1_root_directory_2, typeReferenceDirectiveName, containingFile, rootDir);
+                }
             }
         }
 
@@ -249,9 +264,20 @@ namespace ts {
         }
 
         let resolvedFile: string;
+        let initialLocationForSecondaryLookup: string;
         if (containingFile) {
+            initialLocationForSecondaryLookup = getDirectoryPath(containingFile);
+        }
+        else {
+            initialLocationForSecondaryLookup = rootDir;
+        }
+
+        if (initialLocationForSecondaryLookup !== undefined) {
             // check secondary locations
-            resolvedFile = loadModuleFromNodeModules(typeReferenceDirectiveName, getDirectoryPath(containingFile), failedLookupLocations, moduleResolutionState);
+            if (traceEnabled) {
+                trace(host, Diagnostics.Looking_up_in_secondary_locations_initial_location_0, initialLocationForSecondaryLookup);
+            }
+            resolvedFile = loadModuleFromNodeModules(typeReferenceDirectiveName, initialLocationForSecondaryLookup, failedLookupLocations, moduleResolutionState);
             if (traceEnabled) {
                 if (resolvedFile) {
                     trace(host, Diagnostics.Type_reference_directive_0_was_successfully_resolved_to_1_primary_Colon_2, typeReferenceDirectiveName, resolvedFile, false);
@@ -263,7 +289,7 @@ namespace ts {
         }
         else {
             if (traceEnabled) {
-                // TODO
+                trace(host, Diagnostics.Containing_file_is_not_specified_and_root_directory_cannot_be_determined_skipping_lookup_in_secondary_locations);
             }
         }
         return {

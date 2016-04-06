@@ -332,7 +332,7 @@ namespace ts {
                 name: "types",
                 type: "string"
             },
-            description: Diagnostics.Type_declaration_files_to_be_includes_in_compilation
+            description: Diagnostics.Type_declaration_files_to_be_included_in_compilation
         },
         {
             name: "traceResolution",
