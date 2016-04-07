@@ -1205,6 +1205,12 @@ namespace ts {
         return (node.expression as StringLiteral).text === "use strict";
     }
 
+    /**
+     * 
+     * @param target
+     * @param source
+     * @param ensureUseStrict
+     */
     export function addPrologueDirectives(target: Statement[], source: Statement[], ensureUseStrict?: boolean): number {
         let foundUseStrict = false;
         for (let i = 0; i < source.length; i++) {
@@ -1213,11 +1219,11 @@ namespace ts {
                     foundUseStrict = true;
                 }
 
-                target.push(source[i]);
+                target.unshift(source[i]);
             }
             else {
                 if (ensureUseStrict && !foundUseStrict) {
-                    target.push(startOnNewLine(createStatement(createLiteral("use strict"))));
+                    target.unshift(startOnNewLine(createStatement(createLiteral("use strict"))));
                 }
 
                 return i;
