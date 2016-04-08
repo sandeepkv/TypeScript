@@ -1011,7 +1011,7 @@ namespace ts {
             getSymbolCount: () => getDiagnosticsProducingTypeChecker().getSymbolCount(),
             getTypeCount: () => getDiagnosticsProducingTypeChecker().getTypeCount(),
             getFileProcessingDiagnostics: () => fileProcessingDiagnostics,
-            resolvedTypeReferenceDirectives
+            getResolvedTypeReferenceDirectives: () => resolvedTypeReferenceDirectives
         };
 
         verifyCompilerOptions();
@@ -1172,7 +1172,7 @@ namespace ts {
             for (const modifiedFile of modifiedSourceFiles) {
                 fileProcessingDiagnostics.reattachFileDiagnostics(modifiedFile);
             }
-            resolvedTypeReferenceDirectives = oldProgram.resolvedTypeReferenceDirectives;
+            resolvedTypeReferenceDirectives = oldProgram.getResolvedTypeReferenceDirectives();
             oldProgram.structureIsReused = true;
 
             return true;

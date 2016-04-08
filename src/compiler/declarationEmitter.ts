@@ -199,6 +199,10 @@ namespace ts {
             decreaseIndent = newWriter.decreaseIndent;
         }
 
+        function recordTypeReferenceDirective(typeReferenceDirective: string): void {
+            
+        }
+        
         function writeAsynchronousModuleElements(nodes: Node[]) {
             const oldWriter = writer;
             forEach(nodes, declaration => {
@@ -284,6 +288,13 @@ namespace ts {
 
         function trackSymbol(symbol: Symbol, enclosingDeclaration?: Node, meaning?: SymbolFlags) {
             handleSymbolAccessibilityError(resolver.isSymbolAccessible(symbol, enclosingDeclaration, meaning));
+
+            const typeReferenceDirectives = resolver.getTypeDeclarationDirectivesForSourceFile(symbol, meaning);
+            if (typeReferenceDirectives) {
+                for  (const typeReferenceDirective of typeReferenceDirectives) {
+                    recordTypeReferenceDirective(typeReferenceDirective);
+                }
+            }
         }
 
         function reportInaccessibleThisError() {

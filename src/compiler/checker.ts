@@ -16816,6 +16816,21 @@ namespace ts {
         }
 
         function createResolver(): EmitResolver {
+            let typeReferenceDirectiveFileToName: FileMap<string>;
+            const resolvedTypeReferenceDirectives = host.getResolvedTypeReferenceDirectives();
+
+            if (resolvedTypeReferenceDirectives) {
+                typeReferenceDirectiveFileToName = createFileMap<string>();
+                for(const directive in resolvedTypeReferenceDirectives) {
+                    if (!hasProperty(resolvedTypeReferenceDirectives, directive)) {
+                        continue;
+                    }
+                    const value = resolvedTypeReferenceDirectives[directive];
+                    const file = host.getSourceFile(value.resolvedFileName);
+                    typeReferenceDirectiveFileToName.set(file.path, directive); 
+                }
+            }
+
             return {
                 getReferencedExportContainer,
                 getReferencedImportDeclaration,
@@ -16841,8 +16856,16 @@ namespace ts {
                 isOptionalParameter,
                 moduleExportsSomeValue,
                 isArgumentsLocalBinding,
-                getExternalModuleFileFromDeclaration
+                getExternalModuleFileFromDeclaration,
+                getTypeDeclarationDirectivesForSourceFile
             };
+            
+            function getTypeDeclarationDirectivesForSourceFile(symbol: Symbol, meaning?: SymbolFlags): string[] {
+                if (!typeReferenceDirectiveFileToName) {
+                    return undefined;
+                }
+                
+            }
         }
 
         function getExternalModuleFileFromDeclaration(declaration: ImportEqualsDeclaration | ImportDeclaration | ExportDeclaration | ModuleDeclaration): SourceFile {
